@@ -1,4 +1,4 @@
-# AgentAuth MCP Gateway (@agentauth/mcp) - The universal MCP gateway for AI agents, enabling MCP-native auth and agentic payments
+# AgentAuth MCP Gateway (@agentauth/mcp) - Universal MCP gateway for AI agents, with MCP-native auth and agentic payments
 
 [![npm version](https://img.shields.io/npm/v/@agentauth/mcp.svg)](https://www.npmjs.com/package/@agentauth/mcp)
 [![npm downloads](https://img.shields.io/npm/dm/%40agentauth%2Fmcp)](https://www.npmjs.com/package/@agentauth/mcp)

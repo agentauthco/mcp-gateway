@@ -68,9 +68,9 @@ async function run() {
       () => {},
       () => {
         const { agentauth_token, agentauth_id, agentauth_address } = generateIdentity();
-        console.log(`AGENTAUTH_ID=${agentauth_id}`);
-        console.log(`AGENTAUTH_ADDRESS=${agentauth_address}`);
-        console.log(`AGENTAUTH_TOKEN=${agentauth_token}`);
+        console.log(`AGENTAUTH_ID = ${agentauth_id}`);
+        console.log(`AGENTAUTH_ADDRESS = ${agentauth_address}`);
+        console.log(`AGENTAUTH_TOKEN = ${agentauth_token}`);
         console.log(`🔐 Keep your AGENTAUTH_TOKEN secure and do not share it with anyone.`);
       }
     )
@@ -94,8 +94,8 @@ async function run() {
           const agentauth_address = deriveAddress(private_key);
           const agentauth_id = generateId(agentauth_address);
 
-          console.log(`AGENTAUTH_ID=${agentauth_id}`);
-          console.log(`AGENTAUTH_ADDRESS=${agentauth_address}`);
+          console.log(`AGENTAUTH_ID = ${agentauth_id}`);
+          console.log(`AGENTAUTH_ADDRESS = ${agentauth_address}`);
         } catch (error) {
           console.error('Error: Invalid private key format.');
           process.exit(1);
