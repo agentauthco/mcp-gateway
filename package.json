@@ -1,0 +1,70 @@
+{
+  "name": "@agentauth/mcp",
+  "version": "0.2.0",
+  "description": "Universal payment-enabled MCP gateway for AI agents with native x402 protocol support.",
+  "main": "dist/proxy.js",
+  "types": "dist/proxy.d.ts",
+  "bin": {
+    "agentauth-mcp": "dist/proxy.js"
+  },
+  "scripts": {
+    "build": "tsc && node -e \"const fs = require('fs'); const path = './dist/proxy.js'; if (process.platform !== 'win32') { fs.chmodSync(path, '755'); }\"",
+    "dev": "tsc -w",
+    "test": "vitest run",
+    "test:unit": "vitest run src/",
+    "test:integration": "vitest run tests/integration/",
+    "test:all": "npm run test:unit && npm run test:integration",
+    "validate": "npm run build && npm run test:all"
+  },
+  "keywords": [
+    "agentauth",
+    "mcp",
+    "gateway",
+    "payments",
+    "authentication",
+    "identity",
+    "wallet",
+    "crypto",
+    "blockchain",
+    "ethereum",
+    "base",
+    "ai-agents",
+    "mcp-clients",
+    "mcp-servers",
+    "model-context-protocol"
+  ],
+  "author": "AgentAuth Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/agentauthco/mcp-gateway.git"
+  },
+  "homepage": "https://github.com/agentauthco/mcp-gateway#readme",
+  "bugs": {
+    "url": "https://github.com/agentauthco/mcp-gateway/issues"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "type": "module",
+  "dependencies": {
+    "@agentauth/core": "0.1.1",
+    "@modelcontextprotocol/sdk": "^1.12.3",
+    "ethers": "^6.13.0",
+    "yargs": "^18.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/yargs": "^17.0.33",
+    "typescript": "^5.8.3",
+    "vitest": "^1.6.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
