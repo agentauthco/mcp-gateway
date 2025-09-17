@@ -1,11 +1,11 @@
-# AgentAuth MCP Gateway (@agentauth/mcp) - The universal auth- and payment-enabled MCP gateway for AI agents
+# AgentAuth MCP Gateway (@agentauth/mcp) - The universal MCP gateway for AI agents, enabling MCP-native auth and agentic payments
 
 [![npm version](https://img.shields.io/npm/v/@agentauth/mcp.svg)](https://www.npmjs.com/package/@agentauth/mcp)
 [![npm downloads](https://img.shields.io/npm/dm/%40agentauth%2Fmcp)](https://www.npmjs.com/package/@agentauth/mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/agentauthco/mcp-gateway?style=social)](https://github.com/agentauthco/mcp-gateway)
 
-**AgentAuth MCP Gateway is a payment-enabled MCP gateway with native x402 protocol support and interactive user approval.**
+**AgentAuth MCP Gateway is an auth- and payment-enabled MCP gateway with native x402 protocol support and interactive user approval.**
 
 Connect AI agents in Claude, Cursor, Windsurf, etc. to any MCP server (with or without authentication), and empower them to make payments for premium tools and resources, while you remain in control with interactive payment approval - no friction, and no surprises.
 
