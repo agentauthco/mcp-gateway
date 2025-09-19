@@ -27,21 +27,23 @@ describe('AgentAuth MCP CLI', () => {
   });
 
   describe('generate command', () => {
-    it('should generate a new identity and output AGENTAUTH_ID and AGENTAUTH_TOKEN', async () => {
+    it('should generate a new identity and output AGENTAUTH_ID, AGENTAUTH_ADDRESS, and AGENTAUTH_TOKEN', async () => {
       const { stdout } = await execAsync(`node ${CLI_PATH} generate`);
-      
-      // Should output both ID and token lines
-      expect(stdout).toContain('AGENTAUTH_ID=');
-      expect(stdout).toContain('AGENTAUTH_TOKEN=');
-      expect(stdout).toMatch(/AGENTAUTH_ID=[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/);
-      expect(stdout).toMatch(/AGENTAUTH_TOKEN=aa-[0-9a-fA-F]{64}/);
-      
+
+      // Should output ID, address, and token lines
+      expect(stdout).toContain('AGENTAUTH_ID = ');
+      expect(stdout).toContain('AGENTAUTH_ADDRESS = ');
+      expect(stdout).toContain('AGENTAUTH_TOKEN = ');
+      expect(stdout).toMatch(/AGENTAUTH_ID = [0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/);
+      expect(stdout).toMatch(/AGENTAUTH_ADDRESS = 0x[0-9a-fA-F]{40}/);
+      expect(stdout).toMatch(/AGENTAUTH_TOKEN = aa-[0-9a-fA-F]{64}/);
+
       // Extract the token and verify it's valid
-      const tokenMatch = stdout.match(/AGENTAUTH_TOKEN=(aa-[0-9a-fA-F]{64})/);
+      const tokenMatch = stdout.match(/AGENTAUTH_TOKEN = (aa-[0-9a-fA-F]{64})/);
       expect(tokenMatch).toBeTruthy();
-      
+
       const token = tokenMatch![1];
-      
+
       // Should be able to derive address from the token
       expect(() => deriveAddress(token)).not.toThrow();
     });
@@ -69,8 +71,8 @@ describe('AgentAuth MCP CLI', () => {
     it('should derive address and ID from aa-prefixed private key', async () => {
       const { stdout } = await execAsync(`node ${CLI_PATH} derive ${testToken}`);
       
-      expect(stdout).toContain(`AGENTAUTH_ID=${testId}`);
-      expect(stdout).toContain(`AGENTAUTH_ADDRESS=${testAddress}`);
+      expect(stdout).toContain(`AGENTAUTH_ID = ${testId}`);
+      expect(stdout).toContain(`AGENTAUTH_ADDRESS = ${testAddress}`);
     });
 
     it('should derive address and ID from 0x-prefixed private key', async () => {
@@ -79,8 +81,8 @@ describe('AgentAuth MCP CLI', () => {
       
       const { stdout } = await execAsync(`node ${CLI_PATH} derive ${evmKey}`);
       
-      expect(stdout).toContain(`AGENTAUTH_ID=${testId}`);
-      expect(stdout).toContain(`AGENTAUTH_ADDRESS=${testAddress}`);
+      expect(stdout).toContain(`AGENTAUTH_ID = ${testId}`);
+      expect(stdout).toContain(`AGENTAUTH_ADDRESS = ${testAddress}`);
     });
 
     it('should derive address and ID from raw hex private key', async () => {
@@ -88,8 +90,8 @@ describe('AgentAuth MCP CLI', () => {
       
       const { stdout } = await execAsync(`node ${CLI_PATH} derive ${rawKey}`);
       
-      expect(stdout).toContain(`AGENTAUTH_ID=${testId}`);
-      expect(stdout).toContain(`AGENTAUTH_ADDRESS=${testAddress}`);
+      expect(stdout).toContain(`AGENTAUTH_ID = ${testId}`);
+      expect(stdout).toContain(`AGENTAUTH_ADDRESS = ${testAddress}`);
     });
 
     it('should fail with invalid private key format', async () => {
@@ -215,7 +217,7 @@ describe('AgentAuth MCP CLI', () => {
     it('should work with generated token in derive command', async () => {
       // Generate a token
       const { stdout: generateOutput } = await execAsync(`node ${CLI_PATH} generate`);
-      const tokenMatch = generateOutput.match(/AGENTAUTH_TOKEN=(aa-[0-9a-fA-F]{64})/);
+      const tokenMatch = generateOutput.match(/AGENTAUTH_TOKEN = (aa-[0-9a-fA-F]{64})/);
       expect(tokenMatch).toBeTruthy();
       
       const token = tokenMatch![1];
@@ -223,12 +225,12 @@ describe('AgentAuth MCP CLI', () => {
       // Use that token in derive command
       const { stdout: deriveOutput } = await execAsync(`node ${CLI_PATH} derive ${token}`);
       
-      expect(deriveOutput).toContain('AGENTAUTH_ID=');
-      expect(deriveOutput).toContain('AGENTAUTH_ADDRESS=0x');
+      expect(deriveOutput).toContain('AGENTAUTH_ID =');
+      expect(deriveOutput).toContain('AGENTAUTH_ADDRESS = 0x');
       
       // Extract address and ID
-      const idMatch = deriveOutput.match(/AGENTAUTH_ID=([a-f0-9-]+)/);
-      const addressMatch = deriveOutput.match(/AGENTAUTH_ADDRESS=(0x[a-fA-F0-9]{40})/);
+      const idMatch = deriveOutput.match(/AGENTAUTH_ID = ([a-f0-9-]+)/);
+      const addressMatch = deriveOutput.match(/AGENTAUTH_ADDRESS = (0x[a-fA-F0-9]{40})/);
       
       expect(idMatch).toBeTruthy();
       expect(addressMatch).toBeTruthy();

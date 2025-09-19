@@ -13,7 +13,7 @@ import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js'
 import { type JSONRPCMessage } from '@modelcontextprotocol/sdk/types.js'
 import { deriveAddress, signPayload } from '@agentauth/core'
 import { WalletService } from '../wallet/walletService.js'
-import { PaymentHandler } from '../proxy/paymentHandler.js'
+import { PaymentHandler } from '../payments/paymentHandler.js'
 
 const VERSION = '0.1.0'
 const REASON_TRANSPORT_FALLBACK = 'falling-back-to-alternate-transport'

@@ -5,7 +5,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { X402Protocol } from '../../src/protocols/x402.js';
-import { ProtocolDetector } from '../../src/proxy/protocolDetector.js';
+import { ProtocolDetector } from '../../src/payments/protocolDetector.js';
 import { AgentPayV002Protocol } from '../../src/protocols/agentpay-v002.js';
 import { WalletService } from '../../src/wallet/walletService.js';
 

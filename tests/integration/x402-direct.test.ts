@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { X402Protocol } from '../../src/protocols/x402.js';
-import { ProtocolDetector } from '../../src/proxy/protocolDetector.js';
+import { ProtocolDetector } from '../../src/payments/protocolDetector.js';
 import { AgentPayV002Protocol } from '../../src/protocols/agentpay-v002.js';
 
 describe('x402 Protocol Integration - Direct Testing', () => {
