@@ -157,7 +157,8 @@ describe('PaymentHandler Multi-Chain Unit Tests', () => {
               value: '0x0',
               chainId: 8453,
               gasLimit: '50000'
-            }
+            },
+            aa_payment_protocol: 'agentpay-v002'
           }
         }
       };
@@ -182,7 +183,8 @@ describe('PaymentHandler Multi-Chain Unit Tests', () => {
               value: '0x0',
               chainId: 8453,
               gasLimit: '50000'
-            })
+            }),
+            aa_payment_protocol: 'agentpay-v002'
           }
         }
       };

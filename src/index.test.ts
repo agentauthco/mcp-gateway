@@ -158,8 +158,8 @@ describe('AgentAuth MCP CLI', () => {
         const output = error.stdout || error.stderr || '';
         // Should not contain the HTTPS validation error
         expect(output).not.toContain('Non-HTTPS URLs are only allowed for localhost');
-        // Should contain connection-related error instead
-        expect(output).toContain('Failed to connect to the remote server');
+        // Should contain connection log showing it attempted to connect
+        expect(output).toContain('Connecting to http://example.com/mcp');
       }
     });
 
