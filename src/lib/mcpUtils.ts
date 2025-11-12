@@ -102,7 +102,31 @@ export function extractFromMCPContent(result: any): any {
       textPreview: textContent.substring(0, 100)
     });
 
-    const parsedContent = JSON.parse(textContent);
+    let parsedContent;
+    try {
+      // Try standard JSON parse first
+      parsedContent = JSON.parse(textContent);
+    } catch (firstParseError) {
+      // Fallback: Handle Python-style dict strings (single quotes)
+      // This is a workaround for Gradio MCP which uses str() instead of json.dumps()
+      debugLog('Initial JSON parse failed, trying Python dict string conversion');
+      try {
+        // Convert Python dict format to JSON by replacing single quotes with double quotes
+        // This is a simple heuristic that works for most cases
+        const jsonified = textContent
+          .replace(/'/g, '"')           // Replace single quotes with double quotes
+          .replace(/True/g, 'true')     // Python True → JSON true
+          .replace(/False/g, 'false')   // Python False → JSON false
+          .replace(/None/g, 'null');    // Python None → JSON null
+        
+        parsedContent = JSON.parse(jsonified);
+        debugLog('Successfully parsed Python dict string after conversion');
+      } catch (secondParseError) {
+        // If both attempts fail, re-throw the original error
+        throw firstParseError;
+      }
+    }
+
     debugLog('Successfully parsed MCP content:', {
       parsedKeys: Object.keys(parsedContent),
       hasError: 'error' in parsedContent,

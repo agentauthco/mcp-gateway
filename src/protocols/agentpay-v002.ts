@@ -53,6 +53,7 @@ export interface TransactionTemplate {
   value: string;
   chainId: number;
   gasLimit: string;
+  x402Requirement?: any;  // Optional x402 requirement passed through for stateless processing
 }
 
 /**
@@ -80,7 +81,7 @@ export interface PaymentProtocol {
   /**
    * Create payment authorization headers
    */
-  createAuthorizationHeaders(signedTx: string, from: string): Record<string, string>;
+  createAuthorizationHeaders(signedTx: string, from: string, walletService?: WalletService, requirement?: any): Promise<Record<string, string>> | Record<string, string>;
 
   /**
    * Format payment details for user display (UX layer)
@@ -335,9 +336,21 @@ export class AgentPayV002Protocol implements PaymentProtocol {
     const instructions = [
       'PAYMENT AUTHORIZATION REQUIRED',
       '',
-      'To approve this payment, retry the same tool call with these parameters:',
+      '⚠️  DO NOT AUTO-APPROVE THIS PAYMENT',
+      '',
+      'REQUIRED STEPS:',
+      '1. FIRST: Present the payment details to the user (amount, description, balance)',
+      '2. THEN: Explicitly ask the user "Do you want to approve this payment?"',
+      '3. WAIT: Get the user\'s explicit approval (yes/y) or rejection (no/n)',
+      '4. ONLY AFTER user approves: Proceed with the approval method below',
+      '',
+      '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+      '',
+      'HOW TO APPROVE (after user confirms):',
+      'Retry the same tool call with these additional parameters:',
       '• aa_payment_approved: true',
       '• aa_payment_transaction: (the transaction object below)',
+      '• aa_payment_protocol: "agentpay-v002"',
       '',
       '⚠️  CRITICAL: When copying the transaction data field:',
       '• NEVER truncate or modify the "data" field - copy it EXACTLY as provided',  
@@ -360,7 +373,8 @@ export class AgentPayV002Protocol implements PaymentProtocol {
         }
       }
       instructions.push('  "aa_payment_approved": true,');
-      instructions.push('  "aa_payment_transaction": {...}');
+      instructions.push('  "aa_payment_transaction": {...},');
+      instructions.push('  "aa_payment_protocol": "agentpay-v002"');
       instructions.push('})');
       instructions.push('');
     }

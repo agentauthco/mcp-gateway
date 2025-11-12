@@ -360,6 +360,29 @@ export class WalletService {
   }
 
   /**
+   * Sign EIP-712 typed data (for x402 exact scheme EIP-3009 authorization)
+   */
+  async signTypedData(
+    domain: {
+      name: string;
+      version: string;
+      chainId: number;
+      verifyingContract: string;
+    },
+    types: Record<string, Array<{ name: string; type: string }>>,
+    message: Record<string, any>
+  ): Promise<string> {
+    try {
+      // ethers v6 uses signTypedData with domain, types, and value
+      const signature = await this.wallet.signTypedData(domain, types, message);
+      debugLog('EIP-712 signature created');
+      return signature;
+    } catch (error) {
+      throw new Error(`Failed to sign typed data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
    * Wait for transaction confirmation
    */
   async waitForTransaction(txHash: string, confirmations: number = 1): Promise<ethers.TransactionReceipt | null> {

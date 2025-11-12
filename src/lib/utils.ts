@@ -304,6 +304,26 @@ export function mcpProxy({
           debugLog('Warning: Transport does not support stateless header injection');
         }
       }
+      
+      // Strip aa_* parameters before forwarding to server
+      // The payment info is now in the X-PAYMENT header, so remove proxy-specific params
+      if ('params' in message && message.params && typeof message.params === 'object') {
+        const params = message.params as any;
+        if (params.arguments && typeof params.arguments === 'object') {
+          // Create a clean copy without aa_* parameters
+          const cleanArguments = Object.fromEntries(
+            Object.entries(params.arguments).filter(([key]) => !key.startsWith('aa_'))
+          );
+          message = {
+            ...message,
+            params: {
+              ...params,
+              arguments: cleanArguments
+            }
+          };
+          debugLog('Stripped aa_* parameters from request before forwarding to server');
+        }
+      }
     }
 
     transportToServer.send(message).catch(onServerError)

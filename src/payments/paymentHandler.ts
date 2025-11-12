@@ -137,6 +137,7 @@ export class PaymentHandler {
           sufficient_funds: hasSufficientFunds
         },
         payment_transaction: paymentDetails.transaction,
+        payment_protocol: protocolName,  // Include protocol name for stateless roundtrip
         cost_breakdown: {
           payment_amount: `${paymentDetails.amount} ${paymentDetails.currency}`,
           estimated_gas: `~${gasEstimate.costEth} ETH`,
@@ -168,7 +169,8 @@ export class PaymentHandler {
       // Check for aa_ prefixed parameters and transaction
       if (params.arguments && 
           (params.arguments.aa_payment_approved === true || params.arguments.aa_payment_approved === 'true') && 
-          params.arguments.aa_payment_transaction) {
+          params.arguments.aa_payment_transaction &&
+          params.arguments.aa_payment_protocol) {  // Also require protocol
         return true;
       }
     }
@@ -188,8 +190,8 @@ export class PaymentHandler {
     const params = message.params as any;
     const args = params.arguments;
     
-    if (!args || !args.aa_payment_approved || !args.aa_payment_transaction) {
-      return { error: 'Missing payment authorization parameters' };
+    if (!args || !args.aa_payment_approved || !args.aa_payment_transaction || !args.aa_payment_protocol) {
+      return { error: 'Missing payment authorization parameters (approved, transaction, or protocol)' };
     }
 
     // Parse transaction if it's a string (JSON)
@@ -202,11 +204,15 @@ export class PaymentHandler {
       }
     }
 
+    // Get the protocol name from the authorization request
+    const protocolName = args.aa_payment_protocol;
+    debugLog(`Payment authorization using protocol: ${protocolName}`);
+
     try {
-      // Find the appropriate protocol 
-      const protocol = this.protocols.get('agentpay-v002');
+      // Find the appropriate protocol (STATELESS - based on client's protocol parameter)
+      const protocol = this.protocols.get(protocolName);
       if (!protocol) {
-        return { error: 'AgentPay v0.0.2 protocol not available' };
+        return { error: `Payment protocol '${protocolName}' not available` };
       }
 
       // Attempt to fix LLM-truncated transaction data
@@ -250,8 +256,10 @@ export class PaymentHandler {
         this.walletService
       );
 
-      // Create authorization headers
-      const headers = protocol.createAuthorizationHeaders(signedTx, from);
+      // Create authorization headers (may be async for x402 EIP-712 signing)
+      const headers = await Promise.resolve(
+        protocol.createAuthorizationHeaders(signedTx, from, this.walletService)
+      );
 
       debugLog('Payment authorization successful, headers created');
       return { headers };

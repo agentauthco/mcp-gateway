@@ -12,7 +12,7 @@ Thank you for your interest in contributing to AgentAuth MCP Gateway! This proje
 ### Get Started
 ```bash
 # Clone the repository
-git clone https://github.com/agentauthco/mcp-gateway.git
+git clone https://github.com/substrates-ai/mcp-gateway.git
 cd mcp-gateway
 
 # Install dependencies
@@ -175,7 +175,7 @@ refactor: extract common validation logic
 ### 1. Fork & Clone
 ```bash
 # Fork the repository on GitHub
-git clone https://github.com/agentauthco/mcp-gateway.git
+git clone https://github.com/substrates-ai/mcp-gateway.git
 cd mcp-gateway
 ```
 

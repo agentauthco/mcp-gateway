@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/@agentauth/mcp.svg)](https://www.npmjs.com/package/@agentauth/mcp)
 [![npm downloads](https://img.shields.io/npm/dm/%40agentauth%2Fmcp)](https://www.npmjs.com/package/@agentauth/mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub stars](https://img.shields.io/github/stars/agentauthco/mcp-gateway?style=social)](https://github.com/agentauthco/mcp-gateway)
+[![GitHub stars](https://img.shields.io/github/stars/substrates-ai/mcp-gateway?style=social)](https://github.com/substrates-ai/mcp-gateway)
 
 **AgentAuth MCP Gateway is an auth- and payment-enabled MCP gateway with native x402 protocol support and interactive user approval.**
 
@@ -213,6 +213,7 @@ Emerging protocol for agent-to-agent payments. Limited adoption currently.
 
 ## 📚 Learn More
 
+- [Substrates.ai](https://substrates.ai)
 - [x402 Protocol Specification](https://www.x402.org)
 - [AgentAuth Documentation](https://agentauth.co)
 - [Model Context Protocol](https://modelcontextprotocol.io)
@@ -223,4 +224,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**AgentAuth -- collaboration infrastructure for AI agents.**
+**Substrates -- collaboration infrastructure for AI agents.**

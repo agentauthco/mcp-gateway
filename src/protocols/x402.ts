@@ -47,13 +47,27 @@ export interface X402Response {
 }
 
 /**
- * x402 Payment Payload for X-PAYMENT header
+ * x402 Payment Payload for X-PAYMENT header (Exact Scheme)
  */
+export interface X402ExactEvmPayloadAuthorization {
+  from: string;
+  to: string;
+  value: string;
+  validAfter: string;
+  validBefore: string;
+  nonce: string;
+}
+
+export interface X402ExactEvmPayload {
+  signature: string;
+  authorization: X402ExactEvmPayloadAuthorization;
+}
+
 export interface X402PaymentPayload {
   x402Version: number;
   scheme: string;
   network: string;
-  payload: string;
+  payload: X402ExactEvmPayload;
 }
 
 /**
@@ -184,55 +198,148 @@ export class X402Protocol implements PaymentProtocol {
   }
 
   /**
-   * Sign payment transaction using wallet service
+   * Sign payment transaction - for x402 exact scheme, prepares EIP-3009 authorization
+   * The actual signature will be created in createAuthorizationHeaders using EIP-712
+   * This is stateless - the template contains all needed data including x402Requirement
    */
   async signPaymentTransaction(
     template: TransactionTemplate,
     walletService: WalletService
   ): Promise<{ signedTx: string; from: string }> {
     try {
-      debugLog('Signing x402 transaction:', { 
+      debugLog('Preparing x402 exact scheme authorization:', { 
         to: template.to, 
         chainId: template.chainId,
-        gasLimit: template.gasLimit 
+        hasRequirement: !!template.x402Requirement
       });
 
-      const nonce = await walletService.getTransactionCount();
-      const gasPrice = await walletService.getGasPrice();
-
-      const tx = {
-        ...template,
-        gasPrice,
-        nonce,
-      };
-
-      const signedTx = await walletService.signTransaction(tx);
       const from = walletService.getAddress();
+      
+      // Temporarily store chainId for network lookup
+      this.currentChainId = template.chainId;
+      
+      // Pass the template through as JSON - includes x402Requirement for stateless processing
+      const templateData = JSON.stringify(template);
 
-      debugLog('x402 transaction signed successfully');
-      return { signedTx, from };
+      debugLog('x402 authorization prepared, will sign in createAuthorizationHeaders');
+      return { signedTx: templateData, from };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      debugLog('Failed to sign x402 transaction:', errorMessage);
-      throw new Error(`x402 transaction signing failed: ${errorMessage}`);
+      debugLog('Failed to prepare x402 authorization:', errorMessage);
+      throw new Error(`x402 authorization preparation failed: ${errorMessage}`);
     }
   }
 
   /**
-   * Create x402 authorization headers for payment
+   * Generate a random 32-byte nonce for EIP-3009 authorization
    */
-  createAuthorizationHeaders(signedTx: string, _from: string): Record<string, string> {
+  private generateNonce(): string {
+    return '0x' + Array.from({ length: 64 }, () => 
+      Math.floor(Math.random() * 16).toString(16)
+    ).join('');
+  }
+
+  /**
+   * Create x402 authorization headers for payment using exact scheme with EIP-3009
+   * Stateless - extracts requirement from the template that was passed through
+   */
+  async createAuthorizationHeaders(
+    signedTx: string, 
+    from: string,
+    walletService: WalletService,
+    _unusedRequirement?: X402PaymentRequirement
+  ): Promise<Record<string, string>> {
     try {
       const network = this.getNetworkFromChainId();
+      
+      // Parse the template data that was passed through (stateless)
+      const template: TransactionTemplate = JSON.parse(signedTx);
+      
+      // Extract the requirement that was embedded in the template
+      const requirement = template.x402Requirement as X402PaymentRequirement;
+      if (!requirement) {
+        throw new Error('x402Requirement missing from transaction template');
+      }
+      
+      // Extract transfer parameters from the requirement
+      const recipientAddress = requirement.payTo;
+      const amount = requirement.maxAmountRequired;
+      
+      // Generate EIP-3009 authorization parameters
+      const now = Math.floor(Date.now() / 1000);
+      const authorization: X402ExactEvmPayloadAuthorization = {
+        from,
+        to: recipientAddress,
+        value: amount,
+        validAfter: (now - 600).toString(), // 10 minutes before
+        validBefore: (now + (requirement?.maxTimeoutSeconds || 300)).toString(),
+        nonce: this.generateNonce()
+      };
+
+      debugLog('Created x402 exact scheme authorization:', {
+        from: authorization.from,
+        to: authorization.to,
+        value: authorization.value,
+        nonce: authorization.nonce.substring(0, 20) + '...'
+      });
+
+      // Sign the authorization using EIP-712
+      const usdcAddress = requirement?.asset || template.to;
+      const chainId = this.currentChainId || 8453; // Base mainnet
+      
+      // Get ERC-20 token EIP-712 domain from server's requirement.extra
+      // The server must provide these for proper EIP-3009 signing
+      const extra = requirement?.extra as { name?: string; version?: string } | undefined;
+      if (!extra?.name || !extra?.version) {
+        throw new Error('Server must provide EIP-712 domain (name, version) in requirement.extra for exact scheme');
+      }
+      const name = extra.name;
+      const version = extra.version;
+
+      const domain = {
+        name,
+        version,
+        chainId,
+        verifyingContract: usdcAddress
+      };
+
+      const types = {
+        TransferWithAuthorization: [
+          { name: 'from', type: 'address' },
+          { name: 'to', type: 'address' },
+          { name: 'value', type: 'uint256' },
+          { name: 'validAfter', type: 'uint256' },
+          { name: 'validBefore', type: 'uint256' },
+          { name: 'nonce', type: 'bytes32' }
+        ]
+      };
+
+      const message = {
+        from: authorization.from,
+        to: authorization.to,
+        value: authorization.value,
+        validAfter: authorization.validAfter,
+        validBefore: authorization.validBefore,
+        nonce: authorization.nonce
+      };
+
+      debugLog('Signing EIP-712 typed data for x402 exact scheme');
+      const signature = await walletService.signTypedData(domain, types, message);
+
+      const exactPayload: X402ExactEvmPayload = {
+        signature,
+        authorization
+      };
+
       const payload: X402PaymentPayload = {
         x402Version: 1,
-        scheme: 'simple',
+        scheme: 'exact',
         network,
-        payload: signedTx
+        payload: exactPayload
       };
 
       const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64');
-      debugLog('Created x402 authorization headers for network:', network);
+      debugLog('Created x402 exact scheme authorization headers for network:', network);
 
       return {
         'X-PAYMENT': encodedPayload
@@ -317,9 +424,21 @@ export class X402Protocol implements PaymentProtocol {
     const instructions = [
       'x402 PAYMENT AUTHORIZATION REQUIRED',
       '',
-      'To approve this payment, retry the same tool call with these parameters:',
+      '⚠️  DO NOT AUTO-APPROVE THIS PAYMENT',
+      '',
+      'REQUIRED STEPS:',
+      '1. FIRST: Present the payment details to the user (amount, description, balance)',
+      '2. THEN: Explicitly ask the user "Do you want to approve this payment?"',
+      '3. WAIT: Get the user\'s explicit approval (yes/y) or rejection (no/n)',
+      '4. ONLY AFTER user approves: Proceed with the approval method below',
+      '',
+      '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+      '',
+      'HOW TO APPROVE (after user confirms):',
+      'Retry the same tool call with these additional parameters:',
       '• aa_payment_approved: true',
       '• aa_payment_transaction: (the transaction object below)',
+      '• aa_payment_protocol: "x402"',
       '',
       '⚠️  CRITICAL: Copy transaction data exactly as provided',
       '• Never modify the "data" field - copy it character by character',
@@ -340,7 +459,8 @@ export class X402Protocol implements PaymentProtocol {
         }
       }
       instructions.push('  "aa_payment_approved": true,');
-      instructions.push('  "aa_payment_transaction": {...}');
+      instructions.push('  "aa_payment_transaction": {...},');
+      instructions.push('  "aa_payment_protocol": "x402"');
       instructions.push('})');
       instructions.push('');
     }
@@ -465,7 +585,8 @@ export class X402Protocol implements PaymentProtocol {
         data,
         value: '0x0',
         chainId: chainConfig.chainId,    // Auto-derived from network
-        gasLimit: '50000'                // Realistic gas limit for ERC-20 transfers on Base network (~21k-35k typical)
+        gasLimit: '50000',               // Realistic gas limit for ERC-20 transfers on Base network (~21k-35k typical)
+        x402Requirement: requirement     // Pass requirement through for stateless processing
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';

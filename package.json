@@ -1,6 +1,6 @@
 {
   "name": "@agentauth/mcp",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Universal payment-enabled MCP gateway for AI agents with native x402 protocol support.",
   "main": "dist/proxy.js",
   "types": "dist/proxy.d.ts",
@@ -37,11 +37,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/agentauthco/mcp-gateway.git"
+    "url": "git+https://github.com/substrates-ai/mcp-gateway.git"
   },
-  "homepage": "https://github.com/agentauthco/mcp-gateway#readme",
+  "homepage": "https://github.com/substrates-ai/mcp-gateway#readme",
   "bugs": {
-    "url": "https://github.com/agentauthco/mcp-gateway/issues"
+    "url": "https://github.com/substrates-ai/mcp-gateway/issues"
   },
   "files": [
     "dist",
